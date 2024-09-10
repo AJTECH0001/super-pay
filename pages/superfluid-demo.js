@@ -1,139 +1,62 @@
-// Don't forget imports
-import React, { useState } from 'react';
-import { ethers } from 'ethers';
+import { useState } from 'react';
 
-function SuperfluidDemo() {
-  const [provider, setProvider] = useState(null);
-  const [account, setAccount] = useState('');
-  const [tokenAddress, setTokenAddress] = useState('');
+function SuperPay() {
+  const [account, setAccount] = useState(null);
   const [receiverAddress, setReceiverAddress] = useState('');
   const [flowRate, setFlowRate] = useState('');
-  const [adminAddress, setAdminAddress] = useState('');
   const [message, setMessage] = useState('');
 
-  const CFAv1ForwarderAddress = '0xcfA132E353cB4E398080B9700609bb008eceB125';
-  const GDAv1ForwarderAddress = '0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08';
-  // Simplified ABIs with only the functions we need
-  const CFAv1ForwarderABI = [
-  "function createFlow(address token, address sender, address receiver, int96 flowRate, bytes memory userData) external returns (bool)"
-  ];
-
-  const GDAv1ForwarderABI = [
-  "function createPool(address token, address admin, (uint32 transferabilityForUnitsOwner, bool distributionFromAnyAddress) memory poolConfig) external returns (bool, address)"
-  ];
-
-  const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        setProvider(provider);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        setAccount(address);
-        setMessage(`Connected to ${address}`);
-      } catch (error) {
-        console.error('Failed to connect wallet:', error);
-        setMessage('Failed to connect wallet. Please try again.');
-      }
-    } else {
-      setMessage('Please install Metamask to use this feature.');
-    }
+  const connectWallet = () => {
+    // Simulate wallet connection logic
+    setAccount('0xYourWalletAddress'); // Replace with actual wallet connection
   };
 
-  const createStream = async () => {
-    if (!provider) {
-      setMessage('Please connect your wallet first.');
-      return;
-    }
-
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(CFAv1ForwarderAddress, CFAv1ForwarderABI, signer);
-
-    try {
-      const tx = await contract.createFlow(
-        tokenAddress,
-        account,
-        receiverAddress,
-        flowRate,
-        "0x"
-      );
-      await tx.wait();
-      setMessage('The stream has been created successfully.');
-    } catch (error) {
-      console.error('Error creating stream:', error);
-      setMessage('Failed to create stream. Please try again.');
-    }
-  };
-
-  const createPool = async () => {
-    if (!provider) {
-      setMessage('Please connect your wallet first.');
-      return;
-    }
-
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(GDAv1ForwarderAddress, GDAv1ForwarderABI, signer);
-
-    try {
-      const poolConfig = {
-        transferabilityForUnitsOwner: 0,
-        distributionFromAnyAddress: false
-      };
-      const tx = await contract.createPool(tokenAddress, adminAddress, poolConfig);
-      const receipt = await tx.wait();
-      const [success, poolAddress] = receipt.events.find(e => e.event === 'PoolCreated').args;
-      setMessage(`Pool created successfully at ${poolAddress}`);
-    } catch (error) {
-      console.error('Error creating pool:', error);
-      setMessage('Failed to create pool. Please try again.');
-    }
+  const startStream = () => {
+    // Call Superfluid function to start stream (you'd integrate this with Superfluid SDK)
+    setMessage(`Streaming to ${receiverAddress} at a flow rate of ${flowRate} tokens/second.`);
   };
 
   return (
-    <div style={{ maxWidth: '500px', margin: 'auto', padding: '20px' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 'bold', textAlign: 'center' }}>Superfluid Demo</h1>
+    <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-md">
+      <h1 className="text-2xl font-bold text-center mb-6">Superfluid Subscription Demo</h1>
       
       {!account ? (
-        <button onClick={connectWallet} style={{ backgroundColor: 'blue', color: 'white', padding: '10px', borderRadius: '5px', border: 'none', cursor: 'pointer', width: '100%' }}>Connect Wallet</button>
+        <button
+          onClick={connectWallet}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-md font-bold transition duration-200"
+        >
+          Connect Wallet
+        </button>
       ) : (
-        <p>Connected: {account}</p>
+        <p className="text-center text-green-500 font-semibold">Connected: {account}</p>
       )}
       
-      <input
-        placeholder="Token Address"
-        value={tokenAddress}
-        onChange={(e) => setTokenAddress(e.target.value)}
-        style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-      />
-      
-      <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Create Stream</h2>
-      <input
-        placeholder="Receiver Address"
-        value={receiverAddress}
-        onChange={(e) => setReceiverAddress(e.target.value)}
-        style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-      />
-      <input
-        placeholder="Flow Rate"
-        value={flowRate}
-        onChange={(e) => setFlowRate(e.target.value)}
-        style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-      />
-      <button onClick={createStream} style={{ backgroundColor: 'green', color: 'white', padding: '10px', borderRadius: '5px', border: 'none', cursor: 'pointer', width: '100%' }}>Create Stream</button>
-      
-      <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>Create Pool</h2>
-      <input
-        placeholder="Admin Address"
-        value={adminAddress}
-        onChange={(e) => setAdminAddress(e.target.value)}
-        style={{ width: '100%', padding: '10px', margin: '10px 0' }}
-      />
-      <button onClick={createPool} style={{ backgroundColor: 'blue', color: 'white', padding: '10px', borderRadius: '5px', border: 'none', cursor: 'pointer', width: '100%' }}>Create Pool</button>
+      <div className="mt-6">
+        <input
+          placeholder="Receiver Address"
+          value={receiverAddress}
+          onChange={(e) => setReceiverAddress(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md mb-4"
+        />
+        <input
+          placeholder="Flow Rate (tokens/second)"
+          value={flowRate}
+          onChange={(e) => setFlowRate(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-md mb-4"
+        />
+        <button
+          onClick={startStream}
+          className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-md font-bold transition duration-200"
+        >
+          Start Stream
+        </button>
+      </div>
 
-      {message && <p style={{ marginTop: '20px', textAlign: 'center' }}>{message}</p>}
+      {message && (
+        <p className="mt-6 text-center text-gray-700">{message}</p>
+      )}
     </div>
   );
 }
 
-export default SuperfluidDemo;
+export default SuperPay;
